@@ -398,27 +398,24 @@ babel_print_v2(const u_char *cp, u_int length) {
             break;
         case MESSAGE_PCTS :
             if(!vflag)
-                printf(" pcts");
+                printf(" tspc");
             else {
-                printf("\n\tPC/TS ");
+                printf("\n\tTS/PC ");
                 if(len < 6) goto corrupt;
-                printf("packet counter %u timestamp %u", EXTRACT_16BITS(message + 2),
-                       EXTRACT_32BITS (message + 4));
+                printf("timestamp %u packetcounter %u", EXTRACT_32BITS (message + 4),
+                       EXTRACT_16BITS(message + 2));
             }
             break;
         case MESSAGE_HD : {
             if(!vflag)
                 printf(" hd");
             else {
-                unsigned j, dlen;
-                printf("\n\tHash Digest ");
-                if(len < 19) goto corrupt;
-                dlen = message[4];
-                printf("key-id %u dlen %u ", EXTRACT_16BITS(message + 2), dlen);
-                if(dlen < 16 || dlen > len - 3) goto corrupt;
-                printf("digest ");
-                for (j = 0; j < dlen; j++)
-                    printf ("%02X", message[5 + j]);
+                unsigned j;
+                printf("\n\tHMAC ");
+                if(len < 18) goto corrupt;
+                printf("key-id %u digest-%u ", EXTRACT_16BITS(message + 2), len - 2);
+                for (j = 0; j < len - 2; j++)
+                    printf ("%02X", message[4 + j]);
             }
         }
             break;
