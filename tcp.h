@@ -110,3 +110,6 @@ struct tcphdr {
 #ifndef SMB_PORT
 #define SMB_PORT                445
 #endif
+#ifndef MYSQL_PORT
+#define MYSQL_PORT              3306
+#endif
