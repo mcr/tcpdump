@@ -201,17 +201,18 @@ stp_print_config_bpdu(const struct stp_bpdu_ *stp_bpdu, u_int length)
  *
  */
 
-#define MST_BPDU_MSTI_LENGTH		    16
-#define MST_BPDU_CONFIG_INFO_LENGTH	    64
+#define MST_BPDU_MSTI_LENGTH		            16
+#define MST_BPDU_CONFIG_INFO_LENGTH	        64
 
 /* Offsets of fields from the begginning for the packet */
-#define MST_BPDU_VER3_LEN_OFFSET	    36
-#define MST_BPDU_CONFIG_NAME_OFFSET	    39
-#define MST_BPDU_CONFIG_DIGEST_OFFSET	    73
+#define MST_BPDU_VER1_LEN_OFFSET            35
+#define MST_BPDU_VER3_LEN_OFFSET	          36
+#define MST_BPDU_CONFIG_NAME_OFFSET	        39
+#define MST_BPDU_CONFIG_DIGEST_OFFSET	      73
 #define MST_BPDU_CIST_INT_PATH_COST_OFFSET  89
 #define MST_BPDU_CIST_BRIDGE_ID_OFFSET	    93
 #define MST_BPDU_CIST_REMAIN_HOPS_OFFSET    101
-#define MST_BPDU_MSTI_OFFSET		    102
+#define MST_BPDU_MSTI_OFFSET		            102
 /* Offsets within  an MSTI */
 #define MST_BPDU_MSTI_ROOT_PRIO_OFFSET	    1
 #define MST_BPDU_MSTI_ROOT_PATH_COST_OFFSET 9
@@ -258,7 +259,7 @@ stp_print_mstp_bpdu(const struct stp_bpdu_ *stp_bpdu, u_int length)
            tok2str(rstp_obj_port_role_values, "Unknown",
                    RSTP_EXTRACT_PORT_ROLE(stp_bpdu->flags)));
 
-    printf("CIST root-id %s, CIST ext-pathcost %u ",
+    printf("CIST root-id %s, CIST ext-pathcost %u",
            stp_print_bridge_id((const u_char *)&stp_bpdu->root_id),
            EXTRACT_32BITS(&stp_bpdu->root_path_cost));
 
@@ -274,9 +275,10 @@ stp_print_mstp_bpdu(const struct stp_bpdu_ *stp_bpdu, u_int length)
            (float)EXTRACT_16BITS(&stp_bpdu->hello_time) / STP_TIME_BASE,
            (float)EXTRACT_16BITS(&stp_bpdu->forward_delay) / STP_TIME_BASE);
 
-    printf ("\n\tv3len %d, ", EXTRACT_16BITS(ptr + MST_BPDU_VER3_LEN_OFFSET));
-    printf("MCID Name %s, rev %u, "
-            "\n\t\tdigest %08x%08x%08x%08x, ",
+    printf ("\n\tv1len %d, ", EXTRACT_16BITS(ptr + MST_BPDU_VER1_LEN_OFFSET));
+    printf (" v3len %d, ", EXTRACT_16BITS(ptr + MST_BPDU_VER3_LEN_OFFSET));
+    printf("\n\t  MCID Name %s, rev %u, \n\t  "
+            "digest %08x%08x%08x%08x, ",
             ptr + MST_BPDU_CONFIG_NAME_OFFSET,
 	          EXTRACT_16BITS(ptr + MST_BPDU_CONFIG_NAME_OFFSET + 32),
       	    EXTRACT_32BITS(ptr + MST_BPDU_CONFIG_DIGEST_OFFSET),
@@ -284,17 +286,17 @@ stp_print_mstp_bpdu(const struct stp_bpdu_ *stp_bpdu, u_int length)
 	          EXTRACT_32BITS(ptr + MST_BPDU_CONFIG_DIGEST_OFFSET + 8),
 	          EXTRACT_32BITS(ptr + MST_BPDU_CONFIG_DIGEST_OFFSET + 12));
 
-    printf ("CIST int-root-pathcost %u, ", 
+    printf ("\n\t  CIST int-root-pathcost %u, ", 
             EXTRACT_32BITS(ptr + MST_BPDU_CIST_INT_PATH_COST_OFFSET));  
 
-    printf("\n\tCIST bridge-id %s, ",
+    printf("CIST bridge-id %s, ",
            stp_print_bridge_id(ptr + MST_BPDU_CIST_BRIDGE_ID_OFFSET));
 
-    printf("CIST remaining-hops %d", ptr[MST_BPDU_CIST_REMAIN_HOPS_OFFSET]);
+    printf("\n\t  CIST remaining-hops %d", ptr[MST_BPDU_CIST_REMAIN_HOPS_OFFSET]);
 
     /* Dump all MSTI's */
     v3len = EXTRACT_16BITS(ptr + MST_BPDU_VER3_LEN_OFFSET);
-    if (v3len > MST_BPDU_CONFIG_INFO_LENGTH) {
+    if (v3len >= MST_BPDU_CONFIG_INFO_LENGTH) {
         len = v3len - MST_BPDU_CONFIG_INFO_LENGTH;
         offset = MST_BPDU_MSTI_OFFSET;
         while (len >= MST_BPDU_MSTI_LENGTH) {
@@ -306,12 +308,12 @@ stp_print_mstp_bpdu(const struct stp_bpdu_ *stp_bpdu, u_int length)
                    msti, bittok2str(stp_bpdu_flag_values, "none", ptr[offset]),
                    tok2str(rstp_obj_port_role_values, "Unknown",
                            RSTP_EXTRACT_PORT_ROLE(ptr[offset])));
-            printf("\n\t\tMSTI regional-root-id %s, pathcost %u",
+            printf("\n\t  MSTI regional-root-id %s, pathcost %u",
                    stp_print_bridge_id(ptr + offset +
                                        MST_BPDU_MSTI_ROOT_PRIO_OFFSET),
                    EXTRACT_32BITS(ptr + offset +
                                   MST_BPDU_MSTI_ROOT_PATH_COST_OFFSET));
-            printf("\n\t\tMSTI bridge-prio %d, port-prio %d, hops %d",
+            printf("\n\t  MSTI bridge-prio %d, port-prio %d, hops %d",
                    ptr[offset + MST_BPDU_MSTI_BRIDGE_PRIO_OFFSET] >> 4,
                    ptr[offset + MST_BPDU_MSTI_PORT_PRIO_OFFSET] >> 4,
                    ptr[offset + MST_BPDU_MSTI_REMAIN_HOPS_OFFSET]);
@@ -323,7 +325,8 @@ stp_print_mstp_bpdu(const struct stp_bpdu_ *stp_bpdu, u_int length)
 
     if ((length-offset) >= SPB_BPDU_MIN_LEN)
     {
-      printf("\n\tv4len %d AUXMCID Name %s, Rev %u, \n\t\tdigest %08x%08x%08x%08x",
+      printf("\n\tv4len %d, \n\t  AUXMCID Name %s, "
+             "Rev %u, \n\t  digest %08x%08x%08x%08x",
               EXTRACT_16BITS (ptr + offset),
               ptr + offset + SPB_BPDU_CONFIG_NAME_OFFSET,
               EXTRACT_16BITS(ptr + offset + SPB_BPDU_CONFIG_REV_OFFSET),
@@ -332,10 +335,10 @@ stp_print_mstp_bpdu(const struct stp_bpdu_ *stp_bpdu, u_int length)
               EXTRACT_32BITS(ptr + offset + SPB_BPDU_CONFIG_DIGEST_OFFSET + 8),
               EXTRACT_32BITS(ptr + offset + SPB_BPDU_CONFIG_DIGEST_OFFSET + 12));
      
-      printf("\n\tAgreement num %d, Discarded Agreement num %d, Agreement valid-"
-              "flag %d, \n\tRestricted role-flag: %d, Format id %d cap %d, "
-              "Convention id %d cap %d, \n\tEdge count %d, "
-              "Agreement digest %08x%08x%08x%08x%08x\n",
+      printf("\n\t  Agreement num %d, Discarded Agreement num %d, "
+              "Agreement valid- flag %d, \n\t  Restricted role-flag: %d, "
+              "Format id %d cap %d, Convention id %d cap %d, \n\t  "
+              "Edge count %d, Agreement digest %08x%08x%08x%08x%08x",
               ptr[offset + SPB_BPDU_AGREEMENT_OFFSET]>>6, 
               ptr[offset + SPB_BPDU_AGREEMENT_OFFSET]>>4 & 0x3,
               ptr[offset + SPB_BPDU_AGREEMENT_OFFSET]>>3 & 0x1,
