@@ -821,7 +821,7 @@ AC_DEFUN(AC_LBL_DEVEL,
 			    fi
 			    $1="$$1 -Wall"
 			    if test $ac_cv_lbl_gcc_vers -gt 1 ; then
-				    $1="$$1 -Wmissing-prototypes -Wstrict-prototypes -Wwrite-strings -Wpointer-arith -W"
+				    $1="$$1 -Wmissing-prototypes -Wstrict-prototypes -Wwrite-strings -Wpointer-arith -Wunused -Wdeclaration-after-statement -W"
 			    fi
 		    fi
 	    else
