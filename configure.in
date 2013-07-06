@@ -15,8 +15,9 @@ dnl
 # config.sub.
 #
 
-AC_PREREQ(2.61)
-AC_INIT(tcpdump.c)
+AC_PREREQ([2.69])
+AC_INIT
+AC_CONFIG_SRCDIR([tcpdump.c])
 
 AC_CANONICAL_HOST
 
@@ -66,7 +67,7 @@ case "$host_os" in
 
 darwin*)
 	AC_ARG_ENABLE(universal,
-	AC_HELP_STRING([--disable-universal],[don't build universal on OS X]))
+	AS_HELP_STRING([--disable-universal],[don't build universal on OS X]))
 	if test "$enable_universal" != "no"; then
 		case "$host_os" in
 
@@ -126,7 +127,7 @@ AC_CHECK_LIB(smi, smiInit)
 if test "$ac_cv_header_smi_h" = yes -a "$ac_cv_lib_smi_smiInit" = yes
 then
 AC_MSG_CHECKING([whether to enable libsmi])
-        AC_TRY_RUN([ /* libsmi available check */
+        AC_RUN_IFELSE([AC_LANG_SOURCE([[ /* libsmi available check */
 #include <smi.h>
 main()
 {
@@ -143,24 +144,21 @@ main()
     exit(4);
   exit(0);
 }
-],
-[ AC_MSG_RESULT(yes)
+]])],[ AC_MSG_RESULT(yes)
   AC_DEFINE(LIBSMI, 1, [Define if you enable support for libsmi])
-  libsmi=yes],
-dnl autoconf documentation says that $? contains the exit value.
+  libsmi=yes],[dnl autoconf documentation says that $? contains the exit value.
 dnl reality is that it does not.  We leave this in just in case
 dnl autoconf ever comes back to match the documentation.
-[ case $? in
+ case $? in
   1) AC_MSG_RESULT(no - smiInit failed) ;;
   2) AC_MSG_RESULT(no - header/library version mismatch) ;;
   3) AC_MSG_RESULT(no - can't determine library version) ;;
   4) AC_MSG_RESULT(no - too old) ;;
   *) AC_MSG_RESULT(no) ;;
   esac
-  libsmi=no],
-[ AC_MSG_RESULT(not when cross-compiling)
-  libsmi=no]
-)
+  libsmi=no],[ AC_MSG_RESULT(not when cross-compiling)
+  libsmi=no
+])
 fi
 fi
 
@@ -171,7 +169,7 @@ AC_ARG_ENABLE(smb,
    enableval=yes)
 case "$enableval" in
 yes)	AC_MSG_RESULT(yes)
-	AC_WARN([The SMB printer may have exploitable buffer overflows!!!])
+	AC_MSG_WARN(The SMB printer may have exploitable buffer overflows!!!)
 	AC_DEFINE(TCPDUMP_DO_SMB, 1,
 	    [define if you want to build the possibly-buggy SMB printer])
 	LOCALSRC="print-smb.c smbutil.c $LOCALSRC"
@@ -223,7 +221,7 @@ yes)   AC_MSG_RESULT(yes)
        ;;
   esac ],
 
-  AC_TRY_RUN([ /* AF_INET6 available check */
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[ /* AF_INET6 available check */
 #include <sys/types.h>
 #include <sys/socket.h>
 main()
@@ -233,16 +231,13 @@ main()
  else
    exit(0);
 }
-],
-[ AC_MSG_RESULT(yes)
+]])],[ AC_MSG_RESULT(yes)
   LOCALSRC="print-ip6.c print-ip6opts.c print-mobility.c print-ripng.c print-icmp6.c print-frag6.c print-rt6.c print-ospf6.c print-dhcp6.c print-babel.c $LOCALSRC"
   AC_DEFINE(INET6, 1, [Define if you enable IPv6 support])
-  ipv6=yes],
-[ AC_MSG_RESULT(no)
-  ipv6=no],
-[ AC_MSG_RESULT(no)
-  ipv6=no]
-))
+  ipv6=yes],[ AC_MSG_RESULT(no)
+  ipv6=no],[ AC_MSG_RESULT(no)
+  ipv6=no
+]))
 
 ipv6type=unknown
 ipv6lib=none
@@ -373,7 +368,7 @@ if test "$ipv6" = "yes"; then
 	#
 	AC_SEARCH_LIBS(getaddrinfo, socket, [dnl
 	AC_MSG_CHECKING(getaddrinfo bug)
-	AC_CACHE_VAL(td_cv_buggygetaddrinfo, [AC_TRY_RUN([
+	AC_CACHE_VAL(td_cv_buggygetaddrinfo, [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <sys/types.h>
 #include <netdb.h>
 #include <string.h>
@@ -467,10 +462,7 @@ main()
     freeaddrinfo(aitop);
   exit(1);
 }
-],
-	td_cv_buggygetaddrinfo=no,
-	td_cv_buggygetaddrinfo=yes,
-	td_cv_buggygetaddrinfo=yes)])
+]])],[td_cv_buggygetaddrinfo=no],[td_cv_buggygetaddrinfo=yes],[td_cv_buggygetaddrinfo=yes])])
 	if test "$td_cv_buggygetaddrinfo" = no; then
 		AC_MSG_RESULT(good)
 	else
@@ -576,30 +568,27 @@ AC_LBL_LIBPCAP(V_PCAPDEP, V_INCLS)
 # "_inet_ntop()", and has a #define macro in one of the system headers
 # to rename it.
 #
-dnl AC_TRY_COMPILE(inet_ntop inet_pton inet_aton)
+dnl AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[inet_ntop inet_pton inet_aton]], [[]])],[],[])
 AC_MSG_CHECKING(for inet_ntop)
-AC_TRY_LINK([#include <sys/types.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>], [char src[4], dst[128];
-inet_ntop(AF_INET, src, dst, sizeof(dst));],
-	[AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)
+#include <arpa/inet.h>]], [[char src[4], dst[128];
+inet_ntop(AF_INET, src, dst, sizeof(dst));]])],[AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)
 	AC_LIBOBJ(inet_ntop)])
 AC_MSG_CHECKING(for inet_pton)
-AC_TRY_LINK([#include <sys/types.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>], [char src[128], dst[4];
-inet_pton(AF_INET, src, dst);],
-	[AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)
+#include <arpa/inet.h>]], [[char src[128], dst[4];
+inet_pton(AF_INET, src, dst);]])],[AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)
 	AC_LIBOBJ(inet_pton)])
 AC_MSG_CHECKING(for inet_aton)
-AC_TRY_LINK([#include <sys/types.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>], [char src[128];
+#include <arpa/inet.h>]], [[char src[128];
 struct in_addr dst;
-inet_aton(src, &dst);],
-	[AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)
+inet_aton(src, &dst);]])],[AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)
 	AC_LIBOBJ(inet_aton)])
 
 #
@@ -617,7 +606,7 @@ inet_aton(src, &dst);],
 #
 AC_CHECK_FUNCS(ether_ntohost, [
     AC_CACHE_CHECK(for buggy ether_ntohost, ac_cv_buggy_ether_ntohost, [
-	AC_TRY_RUN([
+	AC_RUN_IFELSE([AC_LANG_SOURCE([[
 		#include <netdb.h>
 		#include <sys/types.h>
 		#include <sys/param.h>
@@ -632,9 +621,7 @@ AC_CHECK_FUNCS(ether_ntohost, [
 			ether_ntohost(name, (struct ether_addr *)ea);
 			exit(0);
 		}
-	], [ac_cv_buggy_ether_ntohost=no],
-	   [ac_cv_buggy_ether_ntohost=yes],
-	   [ac_cv_buggy_ether_ntohost="not while cross-compiling"])])
+	]])],[ac_cv_buggy_ether_ntohost=no],[ac_cv_buggy_ether_ntohost=yes],[ac_cv_buggy_ether_ntohost="not while cross-compiling"])])
     if test "$ac_cv_buggy_ether_ntohost" = "no"; then
 	AC_DEFINE(USE_ETHER_NTOHOST, 1,
 	    [define if you have ether_ntohost() and it works])
@@ -758,14 +745,11 @@ fi
 
 if test $ac_cv_func_pcap_lib_version = "no" ; then
     AC_MSG_CHECKING(whether pcap_version is defined by libpcap)
-    AC_TRY_LINK([],
-       [
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
 	extern char pcap_version[];
 
 	return (int)pcap_version;
-       ],
-       ac_lbl_cv_pcap_version_defined=yes,
-       ac_lbl_cv_pcap_version_defined=no)
+       ]])],[ac_lbl_cv_pcap_version_defined=yes],[ac_lbl_cv_pcap_version_defined=no])
     if test "$ac_lbl_cv_pcap_version_defined" = yes ; then
     	AC_MSG_RESULT(yes)
 	AC_DEFINE(HAVE_PCAP_VERSION, 1, [define if libpcap has pcap_version])
@@ -774,14 +758,11 @@ if test $ac_cv_func_pcap_lib_version = "no" ; then
     fi
 fi
 AC_MSG_CHECKING(whether pcap_debug is defined by libpcap)
-AC_TRY_LINK([],
-   [
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
 	extern int pcap_debug;
 
 	return pcap_debug;
-   ],
-   ac_lbl_cv_pcap_debug_defined=yes,
-   ac_lbl_cv_pcap_debug_defined=no)
+   ]])],[ac_lbl_cv_pcap_debug_defined=yes],[ac_lbl_cv_pcap_debug_defined=no])
 if test "$ac_lbl_cv_pcap_debug_defined" = yes ; then
 	AC_MSG_RESULT(yes)
 	AC_DEFINE(HAVE_PCAP_DEBUG, 1, [define if libpcap has pcap_debug])
@@ -791,14 +772,11 @@ else
 	# OK, what about "yydebug"?
 	#
 	AC_MSG_CHECKING(whether yydebug is defined by libpcap)
-	AC_TRY_LINK([],
-	   [
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
 		extern int yydebug;
 
 		return yydebug;
-	   ],
-	   ac_lbl_cv_yydebug_defined=yes,
-	   ac_lbl_cv_yydebug_defined=no)
+	   ]])],[ac_lbl_cv_yydebug_defined=yes],[ac_lbl_cv_yydebug_defined=no])
 	if test "$ac_lbl_cv_yydebug_defined" = yes ; then
 		AC_MSG_RESULT(yes)
 		AC_DEFINE(HAVE_YYDEBUG, 1, [define if libpcap has yydebug])
@@ -1051,10 +1029,11 @@ AC_PROG_INSTALL
 
 AC_CONFIG_HEADER(config.h)
 
-AC_OUTPUT_COMMANDS([if test -f .devel; then
+AC_CONFIG_COMMANDS([default-1],[[if test -f .devel; then
 	echo timestamp > stamp-h
 	cat Makefile-devel-adds >> Makefile
 	make depend
-fi])
-AC_OUTPUT(Makefile tcpdump.1)
+fi]],[[]])
+AC_CONFIG_FILES([Makefile tcpdump.1])
+AC_OUTPUT
 exit 0
