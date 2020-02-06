@@ -1113,6 +1113,8 @@ endif()
 
 set(TCPDUMP_SOURCE_LIST_C fptype.c tcpdump.c)
 
+set(PKTDUMP_SOURCE_LIST_C pktdump.c)
+
 if(NOT HAVE_BPF_DUMP)
     set(TCPDUMP_SOURCE_LIST_C ${TCPDUMP_SOURCE_LIST_C} bpf_dump.c)
 endif(NOT HAVE_BPF_DUMP)
@@ -1142,10 +1144,16 @@ source_group("Header Files" FILES ${PROJECT_SOURCE_LIST_H})
 ######################################
 
 add_executable(tcpdump ${TCPDUMP_SOURCE_LIST_C})
+add_executable(pktdump ${PKTDUMP_SOURCE_LIST_C})
 if(NOT C_ADDITIONAL_FLAGS STREQUAL "")
     set_target_properties(tcpdump PROPERTIES COMPILE_FLAGS ${C_ADDITIONAL_FLAGS})
 endif()
 target_link_libraries(tcpdump netdissect ${TCPDUMP_LINK_LIBRARIES})
+
+if(NOT C_ADDITIONAL_FLAGS STREQUAL "")
+    set_target_properties(pktdump PROPERTIES COMPILE_FLAGS ${C_ADDITIONAL_FLAGS})
+endif()
+target_link_libraries(pktdump netdissect ${TCPDUMP_LINK_LIBRARIES})
 
 ######################################
 # Write out the config.h file

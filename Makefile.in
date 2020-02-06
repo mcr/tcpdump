@@ -42,6 +42,7 @@ CC = @CC@
 AR = @AR@
 MKDEP = @MKDEP@
 PROG = tcpdump
+PROG1= pktdump
 CCOPT = @V_CCOPT@
 INCLS = -I. @V_INCLS@
 DEFS = @DEFS@ @CPPFLAGS@ @V_DEFS@
@@ -71,6 +72,7 @@ DEPENDENCY_CFLAG = @DEPENDENCY_CFLAG@
 	$(CC) $(FULL_CFLAGS) -c $(srcdir)/$*.c
 
 CSRC =	fptype.c tcpdump.c
+CSRC1=	pktdump.c
 
 LIBNETDISSECT_SRC=\
 	addrtoname.c \
@@ -254,10 +256,12 @@ LIBNETDISSECT=libnetdissect.a
 
 
 SRC =	$(CSRC) $(GENSRC) $(LOCALSRC)
+SRC1 =	$(CSRC1) $(GENSRC) $(LOCALSRC)
 
 # We would like to say "OBJ = $(SRC:.c=.o)" but Ultrix's make cannot
 # hack the extra indirection
-OBJ =	$(CSRC:.c=.o) $(GENSRC:.c=.o)
+OBJ0 =	$(CSRC:.c=.o) $(GENSRC:.c=.o)
+OBJ1 =	$(CSRC1:.c=.o) $(GENSRC:.c=.o)
 HDR = \
 	addrtoname.h \
 	addrtostr.h \
@@ -322,7 +326,7 @@ TAGHDR = \
 
 TAGFILES = $(SRC) $(HDR) $(TAGHDR) $(LIBNETDISSECT_SRC)
 
-CLEANFILES = $(PROG) $(OBJ) $(GENSRC) $(LIBNETDISSECT_OBJ)
+CLEANFILES = $(PROG) $(PROG1) $(OBJ0) $(OBJ1) $(GENSRC) $(LIBNETDISSECT_OBJ)
 
 EXTRA_DIST = \
 	CHANGES \
@@ -387,11 +391,15 @@ EXTRA_DIST = \
 
 TEST_DIST= `git ls-files tests | grep -v 'tests/\..*'`
 
-all: $(PROG)
+all: $(PROG) $(PROG1)
 
-$(PROG): $(OBJ) @V_PCAPDEP@ $(LIBNETDISSECT)
+$(PROG): $(OBJ0) @V_PCAPDEP@ $(LIBNETDISSECT)
 	@rm -f $@
-	$(CC) $(FULL_CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LIBNETDISSECT) $(LIBS)
+	$(CC) $(FULL_CFLAGS) $(LDFLAGS) -o $@ $(OBJ0) $(LIBNETDISSECT) $(LIBS)
+
+$(PROG1): $(OBJ1) @V_PCAPDEP@ $(LIBNETDISSECT)
+	@rm -f $@
+	$(CC) $(FULL_CFLAGS) $(LDFLAGS) -o $@ $(OBJ1) $(LIBNETDISSECT) $(LIBS)
 
 $(LIBNETDISSECT): $(LIBNETDISSECT_OBJ)
 	@rm -f $@
