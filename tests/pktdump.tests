@@ -8,6 +8,12 @@ $testlist = [
         name       => 'pktdump-version',
         output     => 'pktdump-version.out',
     },
+    {
+        program    => './pktdump',
+        name       => 'pktdump-read-print',
+        output     => 'pktdump-read-print.out',
+        args       => '--inputfile @TESTDIR@/ssh.pcap'
+    },
     ];
 
 1;
