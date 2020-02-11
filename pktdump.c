@@ -122,6 +122,8 @@ char *program_name;
 static NORETURN void exit_tcpdump(int);
 static void print_version(void);
 static void print_usage(void);
+static void error(const char *fmt, ...);
+static void warning(const char *fmt, ...);
 
 #ifdef SIGNAL_REQ_INFO
 static void requestinfo(int);
@@ -145,49 +147,6 @@ struct dump_info {
 #endif
 };
 
-/* VARARGS */
-static void
-error(const char *fmt, ...)
-{
-	va_list ap;
-
-	(void)fprintf(stderr, "%s: ", program_name);
-	va_start(ap, fmt);
-	(void)vfprintf(stderr, fmt, ap);
-	va_end(ap);
-	if (*fmt) {
-		fmt += strlen(fmt);
-		if (fmt[-1] != '\n')
-			(void)fputc('\n', stderr);
-	}
-	exit_tcpdump(S_ERR_HOST_PROGRAM);
-	/* NOTREACHED */
-}
-
-/* VARARGS */
-static void
-warning(const char *fmt, ...)
-{
-	va_list ap;
-
-	(void)fprintf(stderr, "%s: WARNING: ", program_name);
-	va_start(ap, fmt);
-	(void)vfprintf(stderr, fmt, ap);
-	va_end(ap);
-	if (*fmt) {
-		fmt += strlen(fmt);
-		if (fmt[-1] != '\n')
-			(void)fputc('\n', stderr);
-	}
-}
-
-static void
-exit_pktwrite(int status)
-{
-	nd_cleanup();
-	exit(status);
-}
-
 /*
  * Short options.
  * In pktwrite, we will start with *NO* short options.
@@ -209,7 +168,7 @@ enum LONG_OPTIONS {
 };
 
 static const struct option longopts[] = {
-	{ "version", no_argument, NULL, OPTION_VERSION },
+	{ "version",     no_argument,       NULL, OPTION_VERSION },
 	{ NULL, 0, NULL, 0 }
 };
 
@@ -287,18 +246,60 @@ USES_APPLE_RST
 static void
 print_usage(void)
 {
-	print_version();
-	(void)fprintf(stderr,
-                      "Usage: %s \n", program_name);
-	(void)fprintf(stderr,
-                      "\t\t[ --version ]\n");
+    print_version();
+    (void)fprintf(stderr,
+                  "Usage: %s \n", program_name);
+    (void)fprintf(stderr,
+                  "\t\t[ --version ]\n");
 
+}
+
+/* VARARGS */
+static void
+error(const char *fmt, ...)
+{
+	va_list ap;
+
+	(void)fprintf(stderr, "%s: ", program_name);
+	va_start(ap, fmt);
+	(void)vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	if (*fmt) {
+		fmt += strlen(fmt);
+		if (fmt[-1] != '\n')
+			(void)fputc('\n', stderr);
+	}
+	exit_tcpdump(S_ERR_HOST_PROGRAM);
+	/* NOTREACHED */
+}
+
+/* VARARGS */
+static void
+warning(const char *fmt, ...)
+{
+	va_list ap;
+
+	(void)fprintf(stderr, "%s: WARNING: ", program_name);
+	va_start(ap, fmt);
+	(void)vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	if (*fmt) {
+		fmt += strlen(fmt);
+		if (fmt[-1] != '\n')
+			(void)fputc('\n', stderr);
+	}
 }
 
 static void
 exit_tcpdump(int status)
 {
-	nd_cleanup();
-	exit(status);
+    nd_cleanup();
+    exit(status);
 }
 
+/*
+ * Local Variables:
+ * c-basic-offset: 4
+ * c-style: linux
+ * End:
+ */
