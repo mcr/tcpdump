@@ -1,0 +1,13 @@
+# -*- perl -*-
+
+# "pktdump" is a second interface to the libnetdissect library that is in progress
+
+$testlist = [
+    {
+        program    => './pktdump',
+        name       => 'pktdump-version',
+        output     => 'pktdump-version.out',
+    },
+    ];
+
+1;

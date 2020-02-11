@@ -455,7 +455,7 @@ distclean:
 	    tests/failure-outputs.txt
 	rm -rf autom4te.cache tests/DIFF tests/NEW
 
-check: tcpdump
+check: tcpdump pktdump
 	$(srcdir)/tests/TESTrun
 
 extags: $(TAGFILES)
