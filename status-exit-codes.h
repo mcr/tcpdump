@@ -26,7 +26,8 @@ typedef enum {
 	S_ERR_ND_MEM_ALLOC  = 12,
 	S_ERR_ND_OPEN_FILE  = 13,
 	S_ERR_ND_WRITE_FILE = 14,
-	S_ERR_ND_ESP_SECRET = 15
+	S_ERR_ND_ESP_SECRET = 15,
+	S_ERR_PD_NO_INPUT   = 16
 } status_exit_codes_t;
 
 #endif /* status_exit_codes_h */
