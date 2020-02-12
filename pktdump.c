@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 The TCPDUMP project
+ * Copyright (c) 2020 The TCPDUMP project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
  */
 
 /*
- * pktwrite - dump traffic on a network, write it to a file
+ * pktdump - dump traffic on a network, write it to a file using a variety of modules
  */
 
 #ifdef HAVE_CONFIG_H
@@ -111,6 +111,7 @@ static const char copyright[] _U_ =
 #include "ascii_strcasecmp.h"
 
 #include "print.h"
+#include "pkt_pipeline.h"
 
 #if defined(HAVE_PCAP_DUMP_FLUSH) && defined(SIGUSR2)
 #define SIGNAL_FLUSH_PCAP SIGUSR2
@@ -165,44 +166,87 @@ struct dump_info {
 
 enum LONG_OPTIONS {
   OPTION_VERSION	= 128,
+  OPTION_INPUTFILE      = 129,
+  OPTION_INPUTPCAP      = 130,
+  OPTION_INPUTPCAPNG    = 131,
+  OPTION_OUTPUTPCAP     = 132,
+  OPTION_OUTPUTPCAPNG   = 133,
+  OPTION_PRINT          = 134,
 };
 
 static const struct option longopts[] = {
 	{ "version",     no_argument,       NULL, OPTION_VERSION },
+	{ "inputpcap",   required_argument, NULL, OPTION_INPUTPCAP },
+	{ "inputpcapng", required_argument, NULL, OPTION_INPUTPCAPNG },
+	{ "inputfile",   required_argument, NULL, OPTION_INPUTFILE },
+	{ "outputpcap",  no_argument,       NULL, OPTION_OUTPUTPCAP },
+	{ "outputpcapng",no_argument,       NULL, OPTION_OUTPUTPCAPNG },
+	{ "print",       no_argument,       NULL, OPTION_PRINT },
 	{ NULL, 0, NULL, 0 }
 };
 
 int
 main(int argc, char **argv)
 {
-        int op, i;
-	char ebuf[PCAP_ERRBUF_SIZE];
+    int op, i, ret;
+    char ebuf[PCAP_ERRBUF_SIZE];
+    pkt_pipeline_source *pps = NULL;
 
-	/*
-	 * On platforms where the CPU doesn't support unaligned loads,
-	 * force unaligned accesses to abort with SIGBUS, rather than
-	 * being fixed up (slowly) by the OS kernel; on those platforms,
-	 * misaligned accesses are bugs, and we want tcpdump to crash so
-	 * that the bugs are reported.
-	 */
-	if (abort_on_misalignment(ebuf, sizeof(ebuf)) < 0)
-		error("%s", ebuf);
+    program_name = argv[0];
 
-	while (
-               (op = getopt_long(argc, argv, SHORTOPTS, longopts, NULL)) != -1)
-                switch (op) {
-                case OPTION_VERSION:
-                        print_version();
-                        exit_tcpdump(S_SUCCESS);
-                        break;
+    /*
+     * On platforms where the CPU doesn't support unaligned loads,
+     * force unaligned accesses to abort with SIGBUS, rather than
+     * being fixed up (slowly) by the OS kernel; on those platforms,
+     * misaligned accesses are bugs, and we want tcpdump to crash so
+     * that the bugs are reported.
+     */
+    if (abort_on_misalignment(ebuf, sizeof(ebuf)) < 0)
+        error("%s", ebuf);
 
-                default:
-                        print_usage();
-                        exit_tcpdump(S_ERR_HOST_PROGRAM);
-                        /* NOTREACHED */
-                }
+    while ((op = getopt_long(argc, argv, SHORTOPTS, longopts, NULL)) != -1) {
+        switch (op) {
+        case OPTION_VERSION:
+            print_version();
+            exit_tcpdump(S_SUCCESS);
+            break;
 
-	exit_tcpdump(0);
+        case OPTION_INPUTPCAP:
+            pps = pktdump_inputsource(optarg, ebuf);
+            if(pps == NULL) {
+                fprintf(stderr, "can not read pcap file %s: %s\n", optarg, ebuf);
+                exit_tcpdump(S_ERR_ND_OPEN_FILE);
+            }
+            break;
+
+        case OPTION_PRINT:
+            if(pps == NULL) {
+                fprintf(stderr, "must provide an input source before setting output options\n");
+                exit_tcpdump(S_ERR_PD_NO_INPUT);
+            }
+            if(pktdump_print_pipeline(pps) != 0) {
+                fprintf(stderr, "can not initialize packet printing stage\n");
+                exit_tcpdump(S_ERR_PD_NO_INPUT);
+            }
+            break;
+
+        default:
+            print_usage();
+            exit_tcpdump(S_ERR_HOST_PROGRAM);
+            /* NOTREACHED */
+        }
+    }
+
+    if(pps) {
+        ret = pktdump_runpipeline(pps);
+    }
+
+    if(pps) {
+        ret = pktdump_finish(pps);
+        pps = NULL;
+    }
+
+    exit_tcpdump(ret);
 }
 
 USES_APPLE_DEPRECATED_API

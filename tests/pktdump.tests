@@ -7,12 +7,14 @@ $testlist = [
         program    => './pktdump',
         name       => 'pktdump-version',
         output     => 'pktdump-version.out',
+        args       => '--version',
+        error_line_count_ignore => 1,
     },
     {
         program    => './pktdump',
         name       => 'pktdump-read-print',
         output     => 'pktdump-read-print.out',
-        args       => '--inputfile @TESTDIR@/ssh.pcap'
+        args       => '--inputpcap @TESTDIR@/ssh.pcap --print',
     },
     ];
 

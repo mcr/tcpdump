@@ -1,0 +1,3 @@
+./pktdump version 4.10.0-PRE-GIT
+libpcap version 1.10.0-PRE-GIT (with TPACKET_V3)
+SMI-library: 0.4.8
