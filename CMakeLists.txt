@@ -1113,7 +1113,7 @@ endif()
 
 set(TCPDUMP_SOURCE_LIST_C fptype.c tcpdump.c)
 
-set(PKTDUMP_SOURCE_LIST_C pktdump.c)
+set(PKTDUMP_SOURCE_LIST_C pktdump.c pkt_inputkernel.c pkt_filecycler.c pkt_inputfile.c pkt_pipeline.c pkt_print.c)
 
 if(NOT HAVE_BPF_DUMP)
     set(TCPDUMP_SOURCE_LIST_C ${TCPDUMP_SOURCE_LIST_C} bpf_dump.c)

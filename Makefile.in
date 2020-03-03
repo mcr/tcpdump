@@ -72,7 +72,7 @@ DEPENDENCY_CFLAG = @DEPENDENCY_CFLAG@
 	$(CC) $(FULL_CFLAGS) -c $(srcdir)/$*.c
 
 CSRC =	fptype.c tcpdump.c
-CSRC1=	pktdump.c pkt_inputfile.c pkt_pipeline.c pkt_print.c
+CSRC1=	pktdump.c pkt_inputfile.c pkt_pipeline.c pkt_print.c pkt_inputkernel.c
 
 LIBNETDISSECT_SRC=\
 	addrtoname.c \

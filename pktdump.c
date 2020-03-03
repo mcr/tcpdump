@@ -172,6 +172,7 @@ enum LONG_OPTIONS {
   OPTION_OUTPUTPCAP     = 132,
   OPTION_OUTPUTPCAPNG   = 133,
   OPTION_PRINT          = 134,
+  OPTION_CAPTURE        = 135,
 };
 
 static const struct option longopts[] = {
@@ -179,6 +180,7 @@ static const struct option longopts[] = {
 	{ "inputpcap",   required_argument, NULL, OPTION_INPUTPCAP },
 	{ "inputpcapng", required_argument, NULL, OPTION_INPUTPCAPNG },
 	{ "inputfile",   required_argument, NULL, OPTION_INPUTFILE },
+	{ "capture",     required_argument, NULL, OPTION_CAPTURE },
 	{ "outputpcap",  no_argument,       NULL, OPTION_OUTPUTPCAP },
 	{ "outputpcapng",no_argument,       NULL, OPTION_OUTPUTPCAPNG },
 	{ "print",       no_argument,       NULL, OPTION_PRINT },
@@ -219,6 +221,14 @@ main(int argc, char **argv)
             }
             break;
 
+        case OPTION_CAPTURE:
+            pps = pktdump_inputkernel(optarg, ebuf);
+            if(pps == NULL) {
+                fprintf(stderr, "can not setup kernel input: %s\n", ebuf);
+                exit_tcpdump(S_ERR_ND_OPEN_FILE);
+            }
+            break;
+
         case OPTION_PRINT:
             if(pps == NULL) {
                 fprintf(stderr, "must provide an input source before setting output options\n");
@@ -238,7 +248,8 @@ main(int argc, char **argv)
     }
 
     if(pps) {
-        ret = pktdump_runpipeline(pps);
+        //ret = pktdump_runpipeline(pps);
+        ret = pktdump_run_groupline(pps);
     }
 
     if(pps) {

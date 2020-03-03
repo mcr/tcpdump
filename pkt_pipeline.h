@@ -164,6 +164,8 @@ extern struct pkt_pipeline_instance *pktdump_pipeline_add(pkt_pipeline_source *p
 
 extern int pktdump_print_pipeline(pkt_pipeline_source *);
 
+extern pkt_pipeline_source *pktdump_inputkernel(const char *filter, char ebuf[PCAP_ERRBUF_SIZE]);
+extern int pktdump_run_groupline(pkt_pipeline_source *pps);
 
 
 /*
