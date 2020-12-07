@@ -167,6 +167,9 @@ extern int pktdump_print_pipeline(pkt_pipeline_source *);
 extern pkt_pipeline_source *pktdump_inputkernel(const char *filter, char ebuf[PCAP_ERRBUF_SIZE]);
 extern int pktdump_run_groupline(pkt_pipeline_source *pps);
 
+/* printer for C/hexdump */
+extern int pktdump_hexdumpc_pipeline(pkt_pipeline_source *pps);
+
 
 /*
  * Local Variables:

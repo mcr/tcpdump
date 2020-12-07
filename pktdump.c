@@ -173,6 +173,7 @@ enum LONG_OPTIONS {
   OPTION_OUTPUTPCAPNG   = 133,
   OPTION_PRINT          = 134,
   OPTION_CAPTURE        = 135,
+  OPTION_HEX_C_DUMP     = 136,
 };
 
 static const struct option longopts[] = {
@@ -183,6 +184,7 @@ static const struct option longopts[] = {
 	{ "capture",     required_argument, NULL, OPTION_CAPTURE },
 	{ "outputpcap",  no_argument,       NULL, OPTION_OUTPUTPCAP },
 	{ "outputpcapng",no_argument,       NULL, OPTION_OUTPUTPCAPNG },
+	{ "hexcdump",    no_argument,       NULL, OPTION_HEX_C_DUMP },
 	{ "print",       no_argument,       NULL, OPTION_PRINT },
 	{ NULL, 0, NULL, 0 }
 };
@@ -226,6 +228,17 @@ main(int argc, char **argv)
             if(pps == NULL) {
                 fprintf(stderr, "can not setup kernel input: %s\n", ebuf);
                 exit_tcpdump(S_ERR_ND_OPEN_FILE);
+            }
+            break;
+
+        case OPTION_HEX_C_DUMP:
+            if(pps == NULL) {
+                fprintf(stderr, "must provide an input source before setting output options\n");
+                exit_tcpdump(S_ERR_PD_NO_INPUT);
+            }
+            if(pktdump_hexdumpc_pipeline(pps) != 0) {
+                fprintf(stderr, "can not initialize packet printing stage\n");
+                exit_tcpdump(S_ERR_PD_NO_INPUT);
             }
             break;
 
